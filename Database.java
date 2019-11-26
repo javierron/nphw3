@@ -10,7 +10,7 @@ class Database{
     public Database(){
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/catalog","root","3853862fuc");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/catalog","javier","password");
         }catch(Exception e){
             e.printStackTrace();
             //connection.close();
@@ -108,15 +108,17 @@ class Database{
 
     public Metadata getFile(String name) throws SQLException{
         Statement sql = connection.createStatement();
-        String query = "SELECT name, size, owner, FROM file WHERE name = '" + name + "';";
-        
+        String query = "SELECT name, size, owner FROM file WHERE name = '" + name + "';";
+        System.out.println(query);
         ResultSet rs = sql.executeQuery(query);
 
+        
         if(!rs.next()){
             return null;
         }
+        String owner = getUsername(rs.getInt(3));
 
-        return new Metadata(rs.getString(1), rs.getInt(2), "owner", "path");
+        return new Metadata(rs.getString(1), rs.getInt(2), owner, "path");
     }
 
     public boolean deleteFile(String name, String user) throws SQLException{
@@ -184,5 +186,15 @@ class Database{
             return -1;
         } 
         return rs.getInt(1);
+    }
+
+    String getUsername(int id) throws SQLException {
+        Statement sql = connection.createStatement();
+        String query = "SELECT username FROM user WHERE id = '" + id + "';";
+        ResultSet rs = sql.executeQuery(query);
+        if(!rs.next()){
+            return "";
+        } 
+        return rs.getString(1);
     }
 }  

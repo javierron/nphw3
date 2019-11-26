@@ -57,7 +57,7 @@ public class Client implements RemoteClient, Serializable {
 
     public static void main(String[] args) {
         
-        String filesPath = "/Users/fccc/Desktop";
+        String filesPath = "/home/javier/hw3files-client";
         State state = State.LOGIN_MENU;
 
 
