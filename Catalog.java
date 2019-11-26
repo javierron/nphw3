@@ -1,3 +1,4 @@
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -5,52 +6,50 @@ import java.util.List;
  */
 public class Catalog implements RemoteCatalog {
 
-    UserDB userDB;
-    MetadataDB metadataDB;
+    Database db;
     ClientDB clientDB;
 
     public Catalog() {
-        userDB = new UserDB();
-        metadataDB = new MetadataDB();
+        db = new Database();
         clientDB = new ClientDB();
     }
 
-    public boolean register(String username, String password){
+    public boolean register(String username, String password) throws SQLException {
 
 
 
-        if(userDB.exists(username)){
+        if(db.exists(username)){
             return false;
         }
 
-        userDB.createUser(username, password);
+        db.createUser(username, password);
         System.out.println("created user: " + username + " " + password);
         return true;
     }
 
-    public boolean login(String username, String password, RemoteClient client){
+    public boolean login(String username, String password, RemoteClient client) throws SQLException {
 
         clientDB.createRemoteClient(username,client);
-        return userDB.checkLogin(username, password);
+        return db.checkLogin(username, password);
     }
 
-    public boolean upload(String name, long size, String user){
+    public boolean upload(String name, long size, String user)throws SQLException{
 
         String uploader_name = null;
-        Metadata metadata = metadataDB.getFile(name);
+        Metadata metadata = db.getFile(name);
         if(metadata != null) {
              uploader_name = metadata.owner;
         }
 
-        MetadataDB.FileStaus fileStaus = metadataDB.saveFile(name, size, user);
+        db.saveFile(name, size, user);
 
-        if(fileStaus == MetadataDB.FileStaus.UPDATE || uploader_name !=null) {
+        if(uploader_name !=null) {
 
 
             RemoteClient uploader = clientDB.getRemoteClient(uploader_name);
 
             try {
-                uploader.notify(user, Client.State.DOWNLOAD_FILE);
+                uploader.notify(user, Client.State.UPLOAD_FILE);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -61,13 +60,13 @@ public class Catalog implements RemoteCatalog {
         return true;
     }
 
-    public List<String> getAvailableFiles(){
+    public List<String> getAvailableFiles()throws SQLException{
 
-        return metadataDB.getFileNames();
+        return db.getFileNames();
     }
 
-    public Metadata download(String name, String downloader_name){
-        Metadata metadata = metadataDB.getFile(name);
+    public Metadata download(String name, String downloader_name) throws SQLException{
+        Metadata metadata = db.getFile(name);
         String uploader_name = metadata.owner;
         RemoteClient uploader = clientDB.getRemoteClient(uploader_name);
 
@@ -82,13 +81,13 @@ public class Catalog implements RemoteCatalog {
 
     }
 
-    public boolean delete(String name, String user){
+    public boolean delete(String name, String user)throws SQLException{
 
-        Metadata metadata = metadataDB.getFile(name);
+        Metadata metadata = db.getFile(name);
         String uploader_name = metadata.owner;
         RemoteClient uploader = clientDB.getRemoteClient(uploader_name);
 
-        boolean status = metadataDB.deleteFile(name, user);
+        boolean status = db.deleteFile(name, user);
 
         try{
             uploader.notify(user, Client.State.DELETE_FILE );
@@ -100,17 +99,17 @@ public class Catalog implements RemoteCatalog {
         return status;
     }
 
-    public List<String> getUserFiles(String user){
-        return metadataDB.getFileNames(user);
+    public List<String> getUserFiles(String user)throws SQLException{
+        return db.getFileNames(user);
     }
 
-    public boolean setPermissions(String name, boolean write, String user){
+    public boolean setPermissions(String name, boolean write, String user)throws SQLException{
 
-        Metadata metadata = metadataDB.getFile(name);
+        Metadata metadata = db.getFile(name);
         String uploader_name = metadata.owner;
         RemoteClient uploader = clientDB.getRemoteClient(uploader_name);
 
-        boolean status = metadataDB.setPermission(name, write, user);
+        boolean status = db.setPermission(name, write, user);
 
         try{
             uploader.notify(user, Client.State.PERMISSIONS_FILE );

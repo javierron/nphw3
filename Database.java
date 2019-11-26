@@ -9,7 +9,8 @@ class Database{
 
     public Database(){
         try{
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/catalog","javier","password");
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/catalog","root","3853862fuc");
         }catch(Exception e){
             e.printStackTrace();
             //connection.close();
