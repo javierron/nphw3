@@ -7,5 +7,5 @@ import java.util.List;
  */
 public interface RemoteClient
  extends Remote {
-    public void notify(int code) throws RemoteException;
+    public void notify(String downloader, Client.State state) throws RemoteException;
 }

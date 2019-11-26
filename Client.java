@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Files;
@@ -17,6 +18,7 @@ public class Client implements RemoteClient, Serializable {
      *
      */
     private static final long serialVersionUID = 1L;
+    public static String forward = null;
 
     enum State {
         LOGIN_MENU,
@@ -30,26 +32,45 @@ public class Client implements RemoteClient, Serializable {
         DELETE_FILE,
         PERMISSIONS_FILE,
         PERMISSIONS_OPTION,
+
     }
 
-    public void notify(int code){
-        System.out.println("notification arrived with code: " + code);
+    public void notify(String downloader, State state){
+
+        switch (state){
+            case DELETE_FILE:
+                System.out.println("Your file is deleted by " + downloader);
+                break;
+            case DOWNLOAD_FILE:
+                System.out.println("Your file is downloaded by " + downloader);
+                break;
+            case UPLOAD_FILE:
+
+            default:
+                break;
+
+
+        }
+
+
     }
 
     public static void main(String[] args) {
         
-        String filesPath = "/home/javier/hw3files-client";
+        String filesPath = "/Users/fccc/Desktop";
         State state = State.LOGIN_MENU;
 
-        String forward = null;
+
+
+        String username = "";
+        String filename = "";
         
         try{
 
-            Registry registry = LocateRegistry.getRegistry("localhost");
+            Registry registry = LocateRegistry.getRegistry();
             RemoteCatalog catalog = (RemoteCatalog)registry.lookup("catalog");
             
-            String username = "";
-            String filename = "";
+
 
             while (true) {
                 String pick = "";
@@ -79,6 +100,8 @@ public class Client implements RemoteClient, Serializable {
                         break;
                     case REGISTER_PASSWORD:
                         String rPassword = Menu.print_register_password_menu();
+
+
                         boolean rSuccess = catalog.register(username, rPassword);
                         if(rSuccess){
                             forward = null;
@@ -148,6 +171,8 @@ public class Client implements RemoteClient, Serializable {
                         
                             int index = Integer.parseInt(pick);
                             Path path = pathList.get(index);
+                            Client cl = new Client();
+                            //RemoteClient stub2 = (RemoteClient)UnicastRemoteObject.exportObject(cl, 0);
                             boolean up = catalog.upload(path.getFileName().toString(), path.toFile().length() , username);
                             
                             if(up){
@@ -178,7 +203,7 @@ public class Client implements RemoteClient, Serializable {
                             
                             int index = Integer.parseInt(pick);
                             String name = files.get(index);
-                            Metadata metadata = catalog.download(name);
+                            Metadata metadata = catalog.download(name,username);
                             forward = "Downloaded: " + metadata.name + " " + metadata.size;
                             state = State.MAIN_MENU;
                         } catch (Exception e) {
@@ -215,6 +240,8 @@ public class Client implements RemoteClient, Serializable {
                             
                         break;
 
+                        //check permission of the file
+
                     case PERMISSIONS_FILE:
                         try {
                             List<String> files = catalog.getUserFiles(username);
@@ -233,6 +260,8 @@ public class Client implements RemoteClient, Serializable {
                             e.printStackTrace();
                             System.exit(1);
                         }
+
+                        //offer permission to the file
                     case PERMISSIONS_OPTION:
                         pick = Menu.print_permission_option_menu(forward);
                         
@@ -257,6 +286,7 @@ public class Client implements RemoteClient, Serializable {
                         state = State.MAIN_MENU;
                     break;
                     default:
+                        if(forward != null) System.out.println(forward);
                         break;
                 }
                 
