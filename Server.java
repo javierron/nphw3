@@ -20,6 +20,7 @@ public class Server {
             
             System.out.println("catalog ready");
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Something went wrong");
         }
     }

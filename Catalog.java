@@ -1,3 +1,4 @@
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -5,57 +6,48 @@ import java.util.List;
  */
 public class Catalog implements RemoteCatalog {
 
-    UserDB userDB;
-    MetadataDB metadataDB;
+    Database db;
 
     public Catalog() {
-        userDB = new UserDB();
-        metadataDB = new MetadataDB();
+        db = new Database();
     }
 
-    public boolean register(String username, String password){
-        if(userDB.exists(username)){
+    public boolean register(String username, String password) throws SQLException{
+        if(db.exists(username)){
             return false;
         }
 
-        userDB.createUser(username, password);
+        db.createUser(username, password);
         System.out.println("created user: " + username + " " + password);
         return true;
     }
 
-    public boolean login(String username, String password, RemoteClient client){
-        try{
-            client.notify(100);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return userDB.checkLogin(username, password);
+    public boolean login(String username, String password, RemoteClient client) throws SQLException {
+        return db.checkLogin(username, password);
     }
 
-    public boolean upload(String name, long size, String user){
-        metadataDB.saveFile(name, size, user);
-        System.out.println("Saved: " + name + " " + size );
-        return true;
+    public boolean upload(String name, long size, String user) throws SQLException {
+        return db.saveFile(name, size, user);
     }
 
-    public List<String> getAvailableFiles(){
-        return metadataDB.getFileNames();
+    public List<String> getAvailableFiles()throws SQLException{
+        return db.getFileNames();
     }
 
-    public Metadata download(String name){
-        return metadataDB.getFile(name);
+    public Metadata download(String name)throws SQLException{
+        return db.getFile(name);
     }
 
-    public boolean delete(String name, String user){
-        return metadataDB.deleteFile(name, user);
+    public boolean delete(String name, String user)throws SQLException{
+        return db.deleteFile(name, user);
     }
 
-    public List<String> getUserFiles(String user){
-        return metadataDB.getFileNames(user);
+    public List<String> getUserFiles(String user)throws SQLException{
+        return db.getFileNames(user);
     }
 
-    public boolean setPermissions(String name, boolean write, String user){
-        return metadataDB.setPermission(name, write, user);
+    public boolean setPermissions(String name, boolean write, String user) throws SQLException{
+        return db.setPermission(name, write, user);
     }
     
 }
