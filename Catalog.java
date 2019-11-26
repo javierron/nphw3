@@ -1,3 +1,11 @@
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -8,10 +16,15 @@ public class Catalog implements RemoteCatalog {
 
     Database db;
     ClientDB clientDB;
+    TransferServer transfer;
 
     public Catalog() {
         db = new Database();
         clientDB = new ClientDB();
+        transfer = new TransferServer();
+
+        Thread t = new Thread(transfer);
+        t.start();
     }
 
     public boolean register(String username, String password) throws SQLException {
@@ -40,21 +53,20 @@ public class Catalog implements RemoteCatalog {
         if(metadata != null) {
              uploader_name = metadata.owner;
         }
+        transfer.setFilename(name);
 
-        db.saveFile(name, size, user);
+        if(!db.saveFile(name, size, user)){
+            return false;
+        }
 
         if(uploader_name !=null) {
-
-
             RemoteClient uploader = clientDB.getRemoteClient(uploader_name);
-
             try {
                 uploader.notify(user, Client.State.UPLOAD_FILE);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-
 
         System.out.println("Saved: " + name + " " + size );
         return true;
@@ -119,5 +131,54 @@ public class Catalog implements RemoteCatalog {
 
         return status;
     }
+ 
     
+    class TransferServer implements Runnable {
+        ServerSocket sSocket;
+        String filename;
+
+        public TransferServer(){
+            try {
+                sSocket = new ServerSocket(4321);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void setFilename(String filename) {
+            this.filename = filename;
+        }
+        
+        @Override
+        public void run() {
+            while(true){
+                Socket socket = null;
+                InputStream in = null;
+                OutputStream out = null;
+
+                try {
+                    socket = sSocket.accept();
+                    in = socket.getInputStream();
+                    out = new FileOutputStream("/home/javier/hw3files-server/" + filename);
+                    
+                    byte[] bytes = new byte[8 * 1024];
+                    
+                    int read;
+                    while ((read = in.read(bytes)) > 0) {
+                        out.write(bytes, 0, read);
+                    }
+                    
+                    out.close();
+                    in.close();
+                    socket.close();
+                    //sSocket.close();
+                
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(0);
+                }
+            }
+        }
+    }
+
 }
