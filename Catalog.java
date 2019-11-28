@@ -78,12 +78,12 @@ public class Catalog implements RemoteCatalog {
     }
 
     public Metadata download(String name, String downloader_name) throws SQLException{
+        
+        downloadServer.setDownloadName(name);
+        
         Metadata metadata = db.getFile(name);
         String uploader_name = metadata.owner;
         RemoteClient uploader = clientDB.getRemoteClient(uploader_name);
-
-
-        downloadServer.setDownloadName(name);
 
         try{
             uploader.notify(downloader_name, Client.State.DOWNLOAD_FILE);
@@ -163,7 +163,7 @@ public class Catalog implements RemoteCatalog {
                     String javier_path = "/home/javier/hw3files-server/";
                     String ethan_path = "/Users/fccc/Downloads/";
                     in = socket.getInputStream();
-                    out = new FileOutputStream(ethan_path + filename);
+                    out = new FileOutputStream(javier_path + filename);
                     
                     byte[] bytes = new byte[8 * 1024];
                     
@@ -207,7 +207,10 @@ public class Catalog implements RemoteCatalog {
                 try {
                     Socket socket = ssock.accept();
 
-                    File file = new File("/Users/fccc/Downloads/" + filename);
+                    String javier_path = "/home/javier/hw3files-server/";
+                    String ethan_path = "/Users/fccc/Downloads/";
+
+                    File file = new File(javier_path + filename);
                     FileInputStream fis = new FileInputStream(file);
 
                     OutputStream os = socket.getOutputStream();

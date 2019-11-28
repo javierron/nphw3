@@ -48,8 +48,8 @@ public class Menu {
     }
 
     static String print_main_menu(String forward) throws IOException{
-        // System.out.print("\033[H\033[2J");  
-        // System.out.flush();
+        System.out.print("\033[H\033[2J");  
+        System.out.flush();
         if(forward != null) System.out.println(forward);
         System.out.println("MAIN MENU");
         System.out.println("1. Upload file");

@@ -23,7 +23,7 @@ public class UploadThread implements Runnable {
             String ethan_path = "/Users/fccc/Documents/";
             String javier_path = "/home/javier/hw3files-client/";
 
-            File file = new File( ethan_path+ filename);
+            File file = new File(javier_path + filename);
             //long length = file.length();
             byte[] bytes = new byte[8 * 1024];
             InputStream in = new FileInputStream(file);

@@ -210,16 +210,12 @@ public class Client implements RemoteClient, Serializable {
                             int index = Integer.parseInt(pick);
                             String name = files.get(index);
 
+                            Metadata metadata = catalog.download(name,username);
 
                             Thread t = new Thread(new DownloadThread(name));
                             t.start();
 
-
-
-                            
-
-                            Metadata metadata = catalog.download(name,username);
-                            forward = "Downloaded: " + metadata.name + " " + metadata.size;
+                            forward = "Downloading: " + metadata.name + " " + metadata.size;
                             state = State.MAIN_MENU;
                         } catch (Exception e) {
                             e.printStackTrace();

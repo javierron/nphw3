@@ -10,7 +10,13 @@ class Database{
     public Database(){
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/catalog","root","3853862fuc");
+            String db_url = "jdbc:mysql://localhost:3306/catalog";
+            String javier_db_user = "javier"; 
+            String javier_db_password = "password";
+
+            String ethan_db_user = "root";
+            String ethan_db_password = "3853862fuc";
+            connection = DriverManager.getConnection(db_url, javier_db_user, javier_db_password);
         }catch(Exception e){
             e.printStackTrace();
             //connection.close();
