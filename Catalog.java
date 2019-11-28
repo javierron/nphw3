@@ -1,9 +1,4 @@
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
@@ -17,14 +12,19 @@ public class Catalog implements RemoteCatalog {
     Database db;
     ClientDB clientDB;
     TransferServer transfer;
+    DownloadServer downloadServer;
 
-    public Catalog() {
+    public Catalog() throws IOException {
         db = new Database();
         clientDB = new ClientDB();
         transfer = new TransferServer();
 
         Thread t = new Thread(transfer);
         t.start();
+
+        downloadServer = new DownloadServer();
+        Thread t1 = new Thread(downloadServer);
+        t1.start();
     }
 
     public boolean register(String username, String password) throws SQLException {
@@ -82,6 +82,8 @@ public class Catalog implements RemoteCatalog {
         String uploader_name = metadata.owner;
         RemoteClient uploader = clientDB.getRemoteClient(uploader_name);
 
+
+        downloadServer.setDownloadName(name);
 
         try{
             uploader.notify(downloader_name, Client.State.DOWNLOAD_FILE);
@@ -158,8 +160,10 @@ public class Catalog implements RemoteCatalog {
 
                 try {
                     socket = sSocket.accept();
+                    String javier_path = "/home/javier/hw3files-server/";
+                    String ethan_path = "/Users/fccc/Downloads/";
                     in = socket.getInputStream();
-                    out = new FileOutputStream("/home/javier/hw3files-server/" + filename);
+                    out = new FileOutputStream(ethan_path + filename);
                     
                     byte[] bytes = new byte[8 * 1024];
                     
@@ -180,5 +184,60 @@ public class Catalog implements RemoteCatalog {
             }
         }
     }
+
+
+    class DownloadServer implements Runnable{
+        ServerSocket ssock;
+        String filename;
+        public DownloadServer() throws IOException {
+
+            ssock = new ServerSocket(4322);
+
+
+        }
+
+        public void setDownloadName(String name){
+            this.filename = name;
+        }
+
+        @Override
+        public void run() {
+
+            while (true) {
+                try {
+                    Socket socket = ssock.accept();
+
+                    File file = new File("/Users/fccc/Downloads/" + filename);
+                    FileInputStream fis = new FileInputStream(file);
+
+                    OutputStream os = socket.getOutputStream();
+
+
+                    byte[] bytes = new byte[8 * 1024];
+
+                    int count;
+                    while ((count = fis.read(bytes)) > 0) {
+                        os.write(bytes, 0, count);
+                    }
+
+                    fis.close();
+                    os.close();
+                    socket.close();
+                    //ssock.close();
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        }
+    }
+
+
+
+
+
 
 }

@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.rmi.Naming;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -61,7 +62,7 @@ public class Client implements RemoteClient, Serializable {
 
     public static void main(String[] args) {
         
-        String filesPath = "/home/javier/hw3files-client";
+        String filesPath = "/Users/fccc/Documents";
         State state = State.LOGIN_MENU;
 
 
@@ -71,9 +72,9 @@ public class Client implements RemoteClient, Serializable {
         
         try{
 
-            Registry registry = LocateRegistry.getRegistry();
-            RemoteCatalog catalog = (RemoteCatalog)registry.lookup("catalog");
-            
+            //Registry registry = LocateRegistry.getRegistry();
+            //RemoteCatalog catalog = (RemoteCatalog)registry.lookup("catalog");
+            RemoteCatalog catalog = (RemoteCatalog) Naming.lookup("catalog");
 
 
             while (true) {
@@ -205,9 +206,18 @@ public class Client implements RemoteClient, Serializable {
                                 state = State.MAIN_MENU;
                                 continue;
                             }
-                            
+
                             int index = Integer.parseInt(pick);
                             String name = files.get(index);
+
+
+                            Thread t = new Thread(new DownloadThread(name));
+                            t.start();
+
+
+
+                            
+
                             Metadata metadata = catalog.download(name,username);
                             forward = "Downloaded: " + metadata.name + " " + metadata.size;
                             state = State.MAIN_MENU;
@@ -305,38 +315,3 @@ public class Client implements RemoteClient, Serializable {
     }
 }
 
-class UploadThread implements Runnable {
-
-    String filename;
-
-    public UploadThread(String filename){
-        this.filename = filename;
-    }
-
-    @Override
-    public void run() {
-        try {
-            Socket socket = null;
-            String host = "localhost";
-
-            socket = new Socket(host, 4321);
-
-            File file = new File("/home/javier/hw3files-client/" + filename);
-            //long length = file.length();
-            byte[] bytes = new byte[8 * 1024];
-            InputStream in = new FileInputStream(file);
-            OutputStream out = socket.getOutputStream();
-
-            int count;
-            while ((count = in.read(bytes)) > 0) {
-                out.write(bytes, 0, count);
-            }
-
-            out.close();
-            in.close();
-            socket.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}

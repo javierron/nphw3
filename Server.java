@@ -1,3 +1,6 @@
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -9,25 +12,24 @@ import java.util.concurrent.CountDownLatch;
  */
 public class Server {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
+
+        try{
+            LocateRegistry.getRegistry().list();
+        }catch (RemoteException noRegistryRunning){
+            LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
+        }
 
 
-
-        try {
-
-
-            Catalog catalog = new Catalog();
+        Catalog catalog = new Catalog();
             RemoteCatalog stub = (RemoteCatalog)UnicastRemoteObject.exportObject(catalog, 0);
             
-            Registry registry = LocateRegistry.getRegistry();
+        //Registry registry = LocateRegistry.getRegistry();
             //registry.unbind("catalog");
-            registry.bind("catalog", stub);
+            //registry.bind("catalog", stub);
+        Naming.rebind("catalog", stub);
+        System.out.println("catalog ready");
 
-            System.out.println("catalog ready");
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Something went wrong in server");
-        }
     }
 
 

@@ -10,7 +10,7 @@ class Database{
     public Database(){
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/catalog","javier","password");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/catalog","root","3853862fuc");
         }catch(Exception e){
             e.printStackTrace();
             //connection.close();
@@ -22,7 +22,7 @@ class Database{
         Statement sql = connection.createStatement();
         String query = "SELECT username FROM user WHERE username = '" + username + "'";
         ResultSet rs = sql.executeQuery(query);
-        return rs.next();
+        return rs.next();         //if rs.next exists, return true, else false
         // return db.containsKey(username);
     }
 
